@@ -108,7 +108,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision :shell, inline: "apt-get install -y ubuntu-desktop"
   
   # Add extra packages
-  config.vm.provision :shell, inline: "apt-get install -y gnome-software gnome-tweaks synaptic"
+  config.vm.provision :shell, inline: "apt-get install -y gnome-software gnome-tweaks synaptic tree"
 
   # Install Virtual Box Guest Additions (Manual for now)
 
