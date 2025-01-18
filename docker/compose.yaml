@@ -1,0 +1,13 @@
+services:
+  ubuntu:
+    build:
+      context: .
+      dockerfile: ubuntu/Dockerfile
+  suse:
+    build:
+      context: .
+      dockerfile: suse/Dockerfile
+  centos:
+    build:
+      context: .
+      dockerfile: centos/Dockerfile
