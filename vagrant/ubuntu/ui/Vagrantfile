@@ -4,6 +4,9 @@
 # Ensure vagrant version is sufficient
 Vagrant.require_version ">= 2.4.1"
 
+base_ubuntu = '../base/Vagrantfile'
+load base_ubuntu if File.exist?(base_ubuntu)
+
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
@@ -15,7 +18,7 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "ubuntu/jammy64"
+#   config.vm.box = "ubuntu/jammy64"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -54,29 +57,11 @@ Vagrant.configure("2") do |config|
   # If you use this you may want to enable additional shared subfolders as
   # shown above.
   # config.vm.synced_folder ".", "/vagrant", disabled: true
-
-  # Provider-specific configuration so you can fine-tune various
-  # backing providers for Vagrant. These expose provider-specific options.
-  # Example for VirtualBox:
-  #
-  # config.vm.provider "virtualbox" do |vb|
-  #   # Display the VirtualBox GUI when booting the machine
-  #   vb.gui = true
-  #
-  #   # Customize the amount of memory on the VM:
-  #   vb.memory = "1024"
-  # end
   #
   # View the documentation for the provider you are using for more
   # information on available options.
   config.vm.provider "virtualbox" do |vbox|
-    vbox.name = "ubuntu-dev"
-
-    # Display the VirtualBox GUI when booting the machine
-    vbox.gui = true
-
-    # Increase memory to improve performance
-    vbox.memory = "2048"
+    vbox.name = "ubuntu-lsa-ui"
 
     # Enable graphics card. The default does not work
     vbox.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
@@ -88,27 +73,19 @@ Vagrant.configure("2") do |config|
                     "--device", "1",
                     "--type", "dvddrive",
                     "--medium", "emptydrive"]
+
+    # Increase memory to improve performance
+    vbox.memory = "2048"
+
+    # Enable graphics card. The default does not work
+    vbox.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
   end
-
-  # Enable provisioning with a shell script. Additional provisioners such as
-  # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
-  # documentation for more information about their specific syntax and use.
-  # config.vm.provision "shell", inline: <<-SHELL
-  #   apt-get update
-  #   apt-get install -y apache2
-  # SHELL
-
-  # Update repositories
-  config.vm.provision :shell, inline: "apt-get update -y"
-
-  # Update installed packages
-  config.vm.provision :shell, inline: "apt-get upgrade -y"
 
   # Add desktop environment
   config.vm.provision :shell, inline: "apt-get install -y ubuntu-desktop"
-  
-  # Add extra packages
-  config.vm.provision :shell, inline: "apt-get install -y gnome-software gnome-tweaks synaptic tree"
+
+  # Add UI packages
+  config.vm.provision :shell, inline: "apt-get install -y gnome-software gnome-tweaks synaptic"
 
   # Install Virtual Box Guest Additions (Manual for now)
 
