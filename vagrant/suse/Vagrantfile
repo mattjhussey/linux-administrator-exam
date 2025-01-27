@@ -15,7 +15,7 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "ubuntu/focal64"
+  config.vm.box = "generic/opensuse15"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -70,7 +70,7 @@ Vagrant.configure("2") do |config|
   # View the documentation for the provider you are using for more
   # information on available options.
   config.vm.provider "virtualbox" do |vbox|
-    vbox.name = "ubuntu-lsa-cli"
+    vbox.name = "suse-lsa-cli"
 
     # Display the VirtualBox GUI when booting the machine
     vbox.gui = true
@@ -86,28 +86,18 @@ Vagrant.configure("2") do |config|
 
   # Set keyboard to UK layout persistently
   config.vm.provision :shell, inline: <<-SHELL
-    echo 'XKBMODEL="pc105"' > /etc/default/keyboard
-    echo 'XKBLAYOUT="gb"' >> /etc/default/keyboard
-    echo 'XKBVARIANT=""' >> /etc/default/keyboard
-    echo 'XKBOPTIONS=""' >> /etc/default/keyboard
-    dpkg-reconfigure -f noninteractive keyboard-configuration
-    setupcon --force
+    localectl set-keymap uk
+    localectl set-x11-keymap gb pc105
   SHELL
 
-  # Update repositories
-  config.vm.provision :shell, inline: "apt-get update -y"
+  # # Update repositories
+  # config.vm.provision :shell, inline: "apt-get update -y"
 
-  # Update installed packages
-  config.vm.provision :shell, inline: "apt-get upgrade -y"
+  # # Update installed packages
+  # config.vm.provision :shell, inline: "apt-get upgrade -y"
   
-  # Add extra packages
-  config.vm.provision :shell, inline: "apt-get install -y acl tree locate"
+  # # Add extra packages
+  # config.vm.provision :shell, inline: "apt-get install -y tree locate"
 
-  # Install Virtual Box Guest Additions (Manual for now)
-
-  # Allow SSH with password
-  config.vm.provision :shell, inline: "sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config"
-
-  # Restart
-  config.vm.provision :shell, inline: "shutdown -r now"
+  # # Install Virtual Box Guest Additions (Manual for now)
 end
