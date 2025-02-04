@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LFCS Practice Questions</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #4CAF50;
+            --background-color: #f5f5f5;
+            --border-color: #ddd;
+            --code-bg-color: #f8f8f8;
+            --code-border-color: #e0e0e0;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .topic-section {
+            margin: 40px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+        }
+        
+        .topic-header {
+            background-color: var(--background-color);
+            padding: 15px;
+            margin: 0;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .topic-header::after {
+            content: ' ▼';
+            float: right;
+        }
+        
+        .topic-header.collapsed::after {
+            content: ' ▶';
+        }
+        
+        .topic-content {
+            display: none;
+            padding: 10px;
+        }
+        
+        .topic-content.expanded {
+            display: block;
+        }
+        
+        .question {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .question:last-child {
+            border-bottom: none;
+        }
+        
+        .steps {
+            margin-left: 20px;
+        }
+        
+        .step {
+            margin: 10px 0;
+            padding: 5px;
+        }
+        
+        .verification {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-left: 3px solid var(--secondary-color);
+        }
+        
+        .score {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-top: 10px;
+        }
+        
+        .search-box {
+            margin: 20px 0;
+            padding: 10px;
+        }
+        
+        #topic-filter {
+            width: 200px;
+            padding: 5px;
+        }
+
+        code {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background-color: var(--code-bg-color);
+            padding: 2px 6px;
+            border: 1px solid var(--code-border-color);
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background-color: var(--code-bg-color);
+            padding: 15px;
+            border: 1px solid var(--code-border-color);
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            border: none;
+            padding: 0;
+            background-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <h1>LFCS Practice Questions</h1>
+    
+    <div class="search-box">
+        <input type="text" id="topic-filter" placeholder="Filter topics...">
+    </div>
+
+    <!-- Essential Commands Section -->
+    <div class="question">
+        <h3 class="question-header collapsed">Question 1</h3>
+        <div class="question-content">
+            <p>Write the Linux Kernel release into <code>/opt/course/1/kernel</code>.</p>
+            <p>Write the current value of Kernel parameter <code>ip_forward</code> into <code>/opt/course/1/ip_forward</code>.</p>
+            <p>Write the system timezone into <code>/opt/course/1/timezone</code></p>
+            <div class="verification">
+                <h4>Verification</h4>
+                <table class="steps">
+                    <tr>
+                        <td>Step 1: Linux Kernel release in file</td>
+                        <td><span style="color: green">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Step 2: Kernel ip_forward value</td>
+                        <td><span style="color: red">✗</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Continue with other sections... -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const headers = document.querySelectorAll('.topic-header');
+            headers.forEach(header => {
+                header.classList.add('collapsed');
+                header.addEventListener('click', function() {
+                    this.classList.toggle('collapsed');
+                    const content = this.nextElementSibling;
+                    content.classList.toggle('expanded');
+                });
+            });
+        });
+
+        const questionResults = {
+            "1.1": 1,
+            "1.2": 0,
+            "2.1": 1,
+            "2.2": 0
+        };
+
+        function updateVerificationTables() {
+            document.querySelectorAll('.steps').forEach(table => {
+                const questionId = table.closest('.question')
+                    .querySelector('.question-header').textContent
+                    .replace('Question ', '').trim();
+                
+                let stepNum = 1;
+                table.querySelectorAll('tr').forEach(row => {
+                    const key = `${questionId}.${stepNum}`;
+                    const result = questionResults[key] || 0;
+                    const symbol = result === 1 ? '✓' : '✗';
+                    const color = result === 1 ? 'green' : 'red';
+                    
+                    row.querySelector('td:last-child').innerHTML = 
+                        `<span style="color: ${color}">${symbol}</span>`;
+                    stepNum++;
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', updateVerificationTables);
+    </script>
+</body>
+</html>
