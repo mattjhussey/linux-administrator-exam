@@ -98,7 +98,7 @@ Vagrant.configure("2") do |config|
     # information on available options.
     ubuntu.vm.provider "virtualbox" do |vbox|
       vbox.name = "ubuntu-lsa-ui"
-  
+    
       # Display the VirtualBox GUI when booting the machine
       vbox.gui = true
 
@@ -107,19 +107,27 @@ Vagrant.configure("2") do |config|
 
       # Create a DVD device to allow guest additions to be attached
       vbox.customize ["storageattach", :id,
-                      "--storagectl", "IDE",
-                      "--port", "0",
-                      "--device", "1",
-                      "--type", "dvddrive",
-                      "--medium", "emptydrive"]
+              "--storagectl", "IDE",
+              "--port", "0",
+              "--device", "1",
+              "--type", "dvddrive",
+              "--medium", "emptydrive"]
 
       # Increase memory to improve performance
       vbox.memory = "2048"
 
       # Enable graphics card. The default does not work
       vbox.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+
+      # Enable bidirectional clipboard
+      vbox.customize ["modifyvm", :id, "--clipboard-mode", "bidirectional"]
     end
     
+    # Add user assetman
+    ubuntu.vm.provision :shell, inline: <<-SHELL
+      useradd -m -s /bin/bash assetman
+      echo "assetman:assetman" | chpasswd
+    SHELL
   
     # Set keyboard to UK layout persistently
     ubuntu.vm.provision :shell, inline: <<-SHELL
@@ -138,7 +146,7 @@ Vagrant.configure("2") do |config|
     ubuntu.vm.provision :shell, inline: "apt-get upgrade -y"
     
     # Add extra packages
-    ubuntu.vm.provision :shell, inline: "apt-get install -y acl tree locate"
+    ubuntu.vm.provision :shell, inline: "apt-get install -y acl tree locate gcc make perl ntpdate"
   
     # Install Virtual Box Guest Additions (Manual for now)
   
