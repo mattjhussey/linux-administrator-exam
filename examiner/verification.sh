@@ -115,3 +115,29 @@ if [ -f /mnt/backup-black/completed ]; then
 else
     echo -e "- \033[31m✗\033[0m /mnt/backup-black/completed exists"
 fi
+# Verify that the /mnt/od_proc2_2/.trash directory exists
+if [ -d /mnt/od_proc2_2/.trash ]; then
+    echo -e "- \033[32m✓\033[0m /mnt/odproc2_2/.trash exists"
+else
+    echo -e "- \033[31m✗\033[0m /mnt/od_proc2_2/.trash exists"
+fi
+# Verify that the /mnt/od_proc2_2/.trash directory is empty
+trash=$(ls -A /mnt/odproc2_2/.trash)
+if [ -z "$trash" ]; then
+    echo -e "- \033[32m✓\033[0m /mnt/odproc2_2/.trash is empty"
+else
+    echo -e "- \033[31m✗\033[0m /mnt/odproc2_2/.trash is empty"
+fi
+# Verify that the /mnt/od_proc2_1/.trash directory exists
+if [ -d /mnt/od_proc2_1/.trash ]; then
+    echo -e "- \033[32m✓\033[0m /mnt/odproc2_1/.trash exists"
+else
+    echo -e "- \033[31m✗\033[0m /mnt/odproc2_1/.trash exists"
+fi
+# Verify that the /mnt/od_proc2_1/.trash directory is not empty
+trash=$(ls -A /mnt/odproc2_1/.trash)
+if [ -z "$trash" ]; then
+    echo -e "- \033[31m✗\033[0m /mnt/odproc2_1/.trash is not empty"
+else
+    echo -e "- \033[32m✓\033[0m /mnt/odproc2_1/.trash is not empty"
+fi

@@ -115,22 +115,30 @@ Vagrant.configure("2") do |config|
       # Increase memory to improve performance
       vbox.memory = "2048"
 
-      # Add new disk
-      file_to_disk = './second_disk.vdi'
-      unless File.exist?(file_to_disk)
-        vbox.customize ['createhd', 
-                       '--filename', file_to_disk, 
-                       '--size', 200, # Size in MB
-                       '--variant', 'Fixed']
+      # Helper method for disk creation and attachment
+      def create_and_attach_disk(vbox, filename, port)
+        unless File.exist?(filename)
+          vbox.customize ['createhd',
+             '--filename', filename,
+             '--size', 200,
+             '--variant', 'Fixed']
+        end
+        
+        vbox.customize ['storageattach', :id,
+               '--storagectl', 'SCSI',
+               '--port', port,
+               '--device', 0,
+               '--type', 'hdd',
+               '--medium', filename]
       end
-      
-      # Must start from port 2 for the ubuntu box because port 0 and 1 are for the default disks
-      vbox.customize ['storageattach', :id,
-                     '--storagectl', 'SCSI',
-                     '--port', 2,
-                     '--device', 0,
-                     '--type', 'hdd',
-                     '--medium', file_to_disk]
+
+      # Add disks for OD/PROC/2
+      ['c', 'd', 'e'].each_with_index do |disk, index|
+        create_and_attach_disk(vbox, 
+                 "./od_proc_2_#{disk}.vdi",
+                 2 + index)
+      end
+
     #   # Enable graphics card. The default does not work
     #   vbox.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
 
@@ -163,7 +171,7 @@ Vagrant.configure("2") do |config|
     lfcsstudent.vm.provision :shell, inline: "apt-get update -y"
   
     # Update installed packages
-    lfcsstudent.vm.provision :shell, inline: "apt-get upgrade -y"
+    # lfcsstudent.vm.provision :shell, inline: "apt-get upgrade -y"
 
     # Add extra packages
     lfcsstudent.vm.provision :shell, inline: "apt install sshpass -y"
@@ -190,6 +198,41 @@ Vagrant.configure("2") do |config|
     lfcsstudent.vm.provision "shell", inline: <<-SHELL
       echo "192.168.56.10 web-srv1" >> /etc/hosts
     SHELL
+
+    # Configure SSH known hosts for web-srv1
+    lfcsstudent.vm.provision :shell, inline: <<-SHELL
+      mkdir -p /home/student/.ssh
+      ssh-keyscan -H 192.168.56.10 >> /home/student/.ssh/known_hosts
+      chown -R student:student /home/student/.ssh
+      chmod 700 /home/student/.ssh
+      chmod 644 /home/student/.ssh/known_hosts
+    SHELL
+
+    # Add disk mounting
+    lfcsstudent.vm.provision :shell, inline: <<-SHELL
+      mkfs.ext4 /dev/sdd
+      mkdir -p /mnt/odproc2_1
+      echo '/dev/sdd /mnt/odproc2_1 ext4 defaults 0 0' >> /etc/fstab
+      mkfs.ext4 /dev/sde
+      mkdir -p /mnt/odproc2_2
+      echo '/dev/sde /mnt/odproc2_2 ext4 defaults 0 0' >> /etc/fstab
+    SHELL
+
+    # Set up OD/PROC/2
+    lfcsstudent.vm.provision :shell, inline: <<-SHELL
+      mkdir /mnt/odproc2_1/.trash
+      for i in {1..999}; do mkdir -p /mnt/odproc2_1/.trash/$i; touch /mnt/odproc2_1/.trash/$i/file; done
+      mkdir /mnt/odproc2_1/.trash
+      # Create 999 folders with empty files, with one folder containing a 100MB file
+      for i in {1..999}; do
+        mkdir -p /mnt/odproc2_2/.trash/$i
+        if [ $i -eq 500 ]; then
+          dd if=/dev/zero of=/mnt/odproc2_2/.trash/$i/file bs=1M count=190
+        else
+          touch /mnt/odproc2_2/.trash/$i/file
+        fi
+      done
+    SHELL
   end
 
   config.vm.define "web-srv1" do |websrv|
@@ -207,7 +250,7 @@ Vagrant.configure("2") do |config|
     # Basic provisioning
     websrv.vm.provision "shell", inline: <<-SHELL
       apt-get update -y
-      apt-get upgrade -y
+      # apt-get upgrade -y
       # Enable password authentication for SSH
       sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
       systemctl restart sshd
