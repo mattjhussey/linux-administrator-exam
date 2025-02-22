@@ -248,3 +248,18 @@ if sudo crontab -l -u root | grep -q "^\* \* \* \* \* killall -9 scan_filesystem
 else
     echo -e "- \033[31m✗\033[0m There is a cron job scheduled to kill all processes named \"scan_filesystem\" every minute"
 fi
+
+# Scenario OD/SCHED/2
+echo "Scenario OD/SCHED/2"
+# Verify that there is no system-wide cronjob to run clean.sh
+if ! grep -r "clean.sh" /etc/cron.* /etc/crontab > /dev/null 2>&1; then
+    echo -e "- \033[32m✓\033[0m There is no system-wide cronjob to run clean.sh"
+else
+    echo -e "- \033[31m✗\033[0m There is no system-wide cronjob to run clean.sh"
+fi
+# Verify that user asset-manager has a cronjob to run /home/asset-manager/clean.sh at 11:15AM every Monday and Thursday
+if sudo crontab -l -u asset-manager | grep -q "^15 11 \* \* 1,4 /home/asset-manager/clean.sh"; then
+    echo -e "- \033[32m✓\033[0m User asset-manager has a cronjob to run /home/asset-manager/clean.sh at 11:15AM every Monday and Thursday"
+else
+    echo -e "- \033[31m✗\033[0m User asset-manager has a cronjob to run /home/asset-manager/clean.sh at 11:15AM every Monday and Thursday"
+fi

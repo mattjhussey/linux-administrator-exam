@@ -155,6 +155,9 @@ Vagrant.configure("2") do |config|
       # Add student alias for verification script
       echo "alias runverify='/examiner/verification.sh'" >> /home/student/.bashrc
       chmod +x /examiner/verification.sh
+
+      useradd -m -s /bin/bash -c "Asset Manager" asset-manager
+      echo "asset-manager:asset-manager" | chpasswd
     SHELL
   
     # Set keyboard to UK layout persistently
@@ -308,6 +311,16 @@ EOF
       systemctl enable nginx
       systemctl start nginx
     SHELL
+
+    # Set up OD/SCHED/2
+    lfcsstudent.vm.provision :shell, inline: <<-SHELL
+      cat > /home/asset-manager/clean.sh << 'EOF'
+echo "Cleaning up..."
+EOF
+      cat >> /etc/crontab << EOF
+30 20 * * * root /home/asset-manager/clean.sh
+EOF
+    SHELL
   end
 
   config.vm.define "web-srv1" do |websrv|
@@ -337,7 +350,7 @@ EOF
       useradd -m -s /bin/bash -c "Examiner" -G sudo examiner
       echo "examiner:examiner" | chpasswd 
       echo "examiner ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/examiner
-      
+
       # Create null process script
       cat > /usr/local/bin/collector1 << 'EOF'
 #!/bin/bash
