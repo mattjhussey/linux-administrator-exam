@@ -263,3 +263,12 @@ if sudo crontab -l -u asset-manager | grep -q "^15 11 \* \* 1,4 /home/asset-mana
 else
     echo -e "- \033[31m✗\033[0m User asset-manager has a cronjob to run /home/asset-manager/clean.sh at 11:15AM every Monday and Thursday"
 fi
+
+# Scenario OD/SCHED/3
+echo "Scenario OD/SCHED/3"
+# Verify that there is a cron job for user asset-manager scheduled to run every Wednedsday at 4AM and calls `find /home/asset-manager/ -type d -empty -delete`
+if sudo crontab -l -u asset-manager | grep -q "^0 4 \* \* 3 find /home/asset-manager/ -type d -empty -delete"; then
+    echo -e "- \033[32m✓\033[0m There is a cron job for user asset-manager scheduled to run every Wednesday at 4AM and calls find /home/asset-manager/ -type d -empty -delete"
+else
+    echo -e "- \033[31m✗\033[0m There is a cron job for user asset-manager scheduled to run every Wednesday at 4AM and calls find /home/asset-manager/ -type d -empty -delete"
+fi
