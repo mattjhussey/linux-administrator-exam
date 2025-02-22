@@ -156,3 +156,28 @@ if [ -z "$mountpoint" ]; then
 else
     echo -e "- \033[31m✗\033[0m High utilisation disk: /mnt/odproc2_4 is unmounted"
 fi
+
+# Scenario OD/PROC/3
+echo "Scenario OD/PROC/3"
+# Verify that the httpd service on web-srv2 is not running
+if ! sshpass -p examiner ssh examiner@web-srv2 "
+    systemctl is-active httpd > /dev/null 2>&1
+    if [ \$? -eq 3 ]; then
+        echo -e \"- \033[32m✓\033[0m The httpd service is not running\"
+    else
+        echo -e \"- \033[31m✗\033[0m The httpd service is not running\"
+    fi
+"; then
+    echo -e "- \033[31m✗\033[0m Failed to connect to web-srv2"
+fi
+# Verify that the httpd service on web-srv2 is disabled
+if ! sshpass -p examiner ssh examiner@web-srv2 "
+    systemctl is-enabled httpd > /dev/null 2>&1
+    if [ \$? -eq 1 ]; then
+        echo -e \"- \033[32m✓\033[0m The httpd service is disabled\"
+    else
+        echo -e \"- \033[31m✗\033[0m The httpd service is disabled\"
+    fi
+"; then
+    echo -e "- \033[31m✗\033[0m Failed to connect to web-srv2"
+fi

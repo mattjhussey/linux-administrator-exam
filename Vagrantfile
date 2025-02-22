@@ -197,6 +197,7 @@ Vagrant.configure("2") do |config|
 
     lfcsstudent.vm.provision "shell", inline: <<-SHELL
       echo "192.168.56.10 web-srv1" >> /etc/hosts
+      echo "192.168.56.11 web-srv2" >> /etc/hosts
     SHELL
 
     # Configure SSH known hosts for web-srv1
@@ -414,6 +415,39 @@ EOF
       systemctl start collector1.service
       systemctl start collector2.service
       systemctl start collector3.service
+    SHELL
+  end
+
+  config.vm.define "web-srv2" do |websrv2|
+    websrv2.vm.box = "generic/centos9s"
+    websrv2.vm.hostname = "web-srv2"
+    
+    websrv2.vm.provider "virtualbox" do |vbox|
+      vbox.name = "web-srv2"
+      vbox.memory = "1024"
+    end
+
+    websrv2.vm.network "private_network", ip: "192.168.56.11"
+
+    websrv2.vm.provision "shell", inline: <<-SHELL
+      dnf update -y
+      # Enable password authentication for SSH
+      sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+      systemctl restart sshd
+      useradd -m -s /bin/bash student
+      echo "student:student" | chpasswd
+      echo "student ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/student
+
+      useradd -m -s /bin/bash -c "Examiner" examiner
+      echo "examiner:examiner" | chpasswd 
+      echo "examiner ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/examiner
+    SHELL
+
+    # Set up OD/PROC/3
+    websrv2.vm.provision :shell, inline: <<-SHELL
+      dnf install -y httpd
+      systemctl enable httpd
+      systemctl start httpd
     SHELL
   end
 
