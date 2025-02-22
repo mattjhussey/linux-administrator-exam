@@ -128,6 +128,9 @@ Vagrant.configure("2") do |config|
       echo "student:student" | chpasswd
       # Add student to sudoers with no password
       echo "student ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/student
+      # Add student alias for verification script
+      echo "alias runverify='/vagrant/verification.sh'" >> /home/student/.bashrc
+      chmod +x /vagrant/verification.sh
     SHELL
   
     # Set keyboard to UK layout persistently
