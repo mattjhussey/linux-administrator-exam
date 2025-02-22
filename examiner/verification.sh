@@ -56,7 +56,7 @@ fi
 # Scenario OD/PROC/1
 echo "Scenario OD/PROC/1"
 # Verify all conditions by running commands through SSH on web-srv1
-sshpass -p examiner ssh examiner@web-srv1 "
+if ! sshpass -p examiner ssh examiner@web-srv1 "
     # Check if the collector2 process is running
     ps -ef | grep collector2 | grep -v grep > /dev/null 2>&1
     if [ \$? -eq 1 ]; then
@@ -89,5 +89,29 @@ sshpass -p examiner ssh examiner@web-srv1 "
     else
         echo -e \"- \033[31m✗\033[0m The working binaries exist\"
     fi
-"
+"; then
+    echo -e "- \033[31m✗\033[0m Failed to connect to web-srv1"
+fi
 
+# Scenario OD/PROC/2
+echo "Scenario OD/PROC/2"
+# Verify that `/dev/sdc` is formatted with `ext4`
+filesystem=$(lsblk -f | grep sdc | awk '{print $2}')
+if [ $filesystem == "ext4" ]; then
+    echo -e "- \033[32m✓\033[0m /dev/sdc is formatted with ext4"
+else
+    echo -e "- \033[31m✗\033[0m /dev/sdc is formatted with ext4"
+fi
+# Verify that `/dev/sdc` is mounted on `/mnt/backup-black`
+mountpoint=$(df -h | grep sdc | awk '{print $6}')
+if [ $mountpoint == "/mnt/backup-black" ]; then
+    echo -e "- \033[32m✓\033[0m /dev/sdc is mounted on /mnt/backup-black"
+else
+    echo -e "- \033[31m✗\033[0m /dev/sdc is mounted on /mnt/backup-black"
+fi
+# Verify that the file `/mnt/backup-black/completed` exists
+if [ -f /mnt/backup-black/completed ]; then
+    echo -e "- \033[32m✓\033[0m /mnt/backup-black/completed exists"
+else
+    echo -e "- \033[31m✗\033[0m /mnt/backup-black/completed exists"
+fi

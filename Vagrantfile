@@ -81,14 +81,14 @@ Vagrant.configure("2") do |config|
     # the path on the host to the actual folder. The second argument is
     # the path on the guest to mount the folder. And the optional third
     # argument is a set of non-required options.
-    # config.vm.synced_folder "../data", "/vagrant_data"
+    config.vm.synced_folder "./examiner", "/examiner"
 
     # Disable the default share of the current code directory. Doing this
     # provides improved isolation between the vagrant box and your host
     # by making sure your Vagrantfile isn't accessable to the vagrant box.
     # If you use this you may want to enable additional shared subfolders as
     # shown above.
-    # config.vm.synced_folder ".", "/vagrant", disabled: true
+    config.vm.synced_folder ".", "/vagrant", disabled: true
     #
     # View the documentation for the provider you are using for more
     # information on available options.
@@ -115,6 +115,22 @@ Vagrant.configure("2") do |config|
       # Increase memory to improve performance
       vbox.memory = "2048"
 
+      # Add new disk
+      file_to_disk = './second_disk.vdi'
+      unless File.exist?(file_to_disk)
+        vbox.customize ['createhd', 
+                       '--filename', file_to_disk, 
+                       '--size', 200, # Size in MB
+                       '--variant', 'Fixed']
+      end
+      
+      # Must start from port 2 for the ubuntu box because port 0 and 1 are for the default disks
+      vbox.customize ['storageattach', :id,
+                     '--storagectl', 'SCSI',
+                     '--port', 2,
+                     '--device', 0,
+                     '--type', 'hdd',
+                     '--medium', file_to_disk]
     #   # Enable graphics card. The default does not work
     #   vbox.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
 
@@ -129,8 +145,8 @@ Vagrant.configure("2") do |config|
       # Add student to sudoers with no password
       echo "student ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/student
       # Add student alias for verification script
-      echo "alias runverify='/vagrant/verification.sh'" >> /home/student/.bashrc
-      chmod +x /vagrant/verification.sh
+      echo "alias runverify='/examiner/verification.sh'" >> /home/student/.bashrc
+      chmod +x /examiner/verification.sh
     SHELL
   
     # Set keyboard to UK layout persistently
