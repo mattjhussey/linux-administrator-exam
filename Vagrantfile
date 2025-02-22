@@ -177,7 +177,7 @@ Vagrant.configure("2") do |config|
     # lfcsstudent.vm.provision :shell, inline: "apt-get upgrade -y"
 
     # Add extra packages
-    lfcsstudent.vm.provision :shell, inline: "apt install sshpass -y"
+    lfcsstudent.vm.provision :shell, inline: "apt install sshpass bzip2 build-essential -y"
     
     # # Add extra packages
     # ubuntu.vm.provision :shell, inline: "apt-get install -y acl tree locate gcc make perl ntpdate"
@@ -202,6 +202,7 @@ Vagrant.configure("2") do |config|
       echo "192.168.56.10 web-srv1" >> /etc/hosts
       echo "192.168.56.11 web-srv2" >> /etc/hosts
       echo "192.168.56.12 web-srv3" >> /etc/hosts
+      echo "192.168.56.13 app-dev1" >> /etc/hosts
     SHELL
 
     # Configure SSH known hosts for web-srv1
@@ -497,6 +498,33 @@ EOF
       echo "examiner ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/examiner
 
       apt install -y nginx
+    SHELL
+  end
+
+  config.vm.define "app-dev1" do |appdev1|
+    # app-dev1 is a new development server but has nothing installed
+    appdev1.vm.box = "ubuntu/jammy64"
+    appdev1.vm.hostname = "app-dev1"
+    
+    appdev1.vm.provider "virtualbox" do |vbox|
+      vbox.name = "app-dev1"
+      vbox.memory = "1024"
+    end
+
+    appdev1.vm.network "private_network", ip: "192.168.56.13"
+
+    appdev1.vm.provision "shell", inline: <<-SHELL
+      apt-get update -y
+      sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+      systemctl restart sshd
+      
+      useradd -m -s /bin/bash -G sudo student
+      echo "student:student" | chpasswd
+      echo "student ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/student
+
+      useradd -m -s /bin/bash -c "Examiner" -G sudo examiner
+      echo "examiner:examiner" | chpasswd 
+      echo "examiner ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/examiner
     SHELL
   end
 

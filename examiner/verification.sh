@@ -299,3 +299,44 @@ if grep -q "0 4 \* \* \* root /opt/odsched4.sh" /etc/crontab; then
 else
     echo -e "- \033[31m✗\033[0m The system-wide /etc/crontab has an entry to execute /opt/odsched4.sh every day at 4AM under user root"
 fi
+
+# Scenario OD/PACK/1
+echo "Scenario OD/PACK/1"
+# Verify that the package 'tmux' is installed
+if dpkg -l | grep -q "ii  tmux"; then
+    echo -e "- \033[32m✓\033[0m The package 'tmux' is installed"
+else
+    echo -e "- \033[31m✗\033[0m The package 'tmux' is installed"
+fi
+
+# Scenario OD/PACK/2
+echo "Scenario OD/PACK/2"
+# Verify that links2 is installed in /usr/bin/links
+if [ -f /usr/bin/links ]; then
+    if [ $(readlink -f /usr/bin/links) == "/usr/bin/links" ]; then
+        echo -e "- \033[32m✓\033[0m links2 is installed in /usr/bin/links"
+    else
+        echo -e "- \033[31m✗\033[0m links2 is installed in /usr/bin/links"
+    fi
+else
+    echo -e "- \033[31m✗\033[0m links2 is installed in /usr/bin/links"
+fi
+# Verify that ipv6 is disabled for links
+if [ $(links -dump -version 2>&1 | grep -c "ipv6") -eq 0 ]; then
+    echo -e "- \033[32m✓\033[0m ipv6 is disabled for links"
+else
+    echo -e "- \033[31m✗\033[0m ipv6 is disabled for links"
+fi
+
+# Scenario OD/PACK/3
+echo "Scenario OD/PACK/3"
+# Verify that htop is installed on app-dev1 in /usr/local/bin
+if ! sshpass -p examiner ssh examiner@app-dev1 "
+    if [ -f /usr/local/bin/htop ]; then
+        echo -e \"- \033[32m✓\033[0m htop is installed in /usr/local/bin\"
+    else
+        echo -e \"- \033[31m✗\033[0m htop is installed in /usr/local/bin\"
+    fi
+"; then
+    echo -e "- \033[31m✗\033[0m Failed to connect to app-dev1"
+fi
