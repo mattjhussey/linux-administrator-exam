@@ -141,3 +141,18 @@ if [ -z "$trash" ]; then
 else
     echo -e "- \033[32m✓\033[0m /mnt/odproc2_1/.trash is not empty"
 fi
+# Verify that /mnt/odproc2_4/dark-matter2 is not running
+ps -ef | grep dark-matter-2 | grep -v grep > /dev/null 2>&1
+if [ $? -eq 1 ]; then
+    echo -e "- \033[32m✓\033[0m dark-matter-2 is not running"
+else
+    echo -e "- \033[31m✗\033[0m dark-matter-2 is not running"
+fi
+
+# Verify that /mnt/odproc2_4 is unmounted
+mountpoint=$(df -h | grep odproc2_4 | awk '{print $6}')
+if [ -z "$mountpoint" ]; then
+    echo -e "- \033[32m✓\033[0m High utilisation disk: /mnt/odproc2_4 is unmounted"
+else
+    echo -e "- \033[31m✗\033[0m High utilisation disk: /mnt/odproc2_4 is unmounted"
+fi

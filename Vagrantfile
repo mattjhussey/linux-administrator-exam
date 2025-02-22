@@ -133,7 +133,7 @@ Vagrant.configure("2") do |config|
       end
 
       # Add disks for OD/PROC/2
-      ['c', 'd', 'e'].each_with_index do |disk, index|
+      ['c', 'd', 'e', 'f', 'g'].each_with_index do |disk, index|
         create_and_attach_disk(vbox, 
                  "./od_proc_2_#{disk}.vdi",
                  2 + index)
@@ -213,25 +213,91 @@ Vagrant.configure("2") do |config|
       mkfs.ext4 /dev/sdd
       mkdir -p /mnt/odproc2_1
       echo '/dev/sdd /mnt/odproc2_1 ext4 defaults 0 0' >> /etc/fstab
+      mount /mnt/odproc2_1
+
       mkfs.ext4 /dev/sde
       mkdir -p /mnt/odproc2_2
       echo '/dev/sde /mnt/odproc2_2 ext4 defaults 0 0' >> /etc/fstab
+      mount /mnt/odproc2_2
+
+      mkfs.ext4 /dev/sdf
+      mkdir -p /mnt/odproc2_3
+      echo '/dev/sdf /mnt/odproc2_3 ext4 defaults 0 0' >> /etc/fstab
+      mount /mnt/odproc2_3
+
+      mkfs.ext4 /dev/sdg
+      mkdir -p /mnt/odproc2_4
+      echo '/dev/sdg /mnt/odproc2_4 ext4 defaults 0 0' >> /etc/fstab
+      mount /mnt/odproc2_4
     SHELL
 
     # Set up OD/PROC/2
     lfcsstudent.vm.provision :shell, inline: <<-SHELL
       mkdir /mnt/odproc2_1/.trash
       for i in {1..999}; do mkdir -p /mnt/odproc2_1/.trash/$i; touch /mnt/odproc2_1/.trash/$i/file; done
-      mkdir /mnt/odproc2_1/.trash
+      mkdir /mnt/odproc2_2/.trash
       # Create 999 folders with empty files, with one folder containing a 100MB file
       for i in {1..999}; do
         mkdir -p /mnt/odproc2_2/.trash/$i
         if [ $i -eq 500 ]; then
-          dd if=/dev/zero of=/mnt/odproc2_2/.trash/$i/file bs=1M count=190
+          dd if=/dev/zero of=/mnt/odproc2_2/.trash/$i/file bs=1M count=160
         else
           touch /mnt/odproc2_2/.trash/$i/file
         fi
       done
+
+      # Create memory-consuming processes
+      cat > /mnt/odproc2_3/dark-matter-1 << 'EOF'
+#!/bin/bash
+while true; do
+  printf -v x %10000000s
+  sleep 10
+  unset x
+done
+EOF
+
+  cat > /mnt/odproc2_4/dark-matter-2 << 'EOF'
+#!/bin/bash
+while true; do
+  printf -v x %100000000s
+  sleep 10
+  unset x
+done
+EOF
+
+      chmod +x /mnt/odproc2_3/dark-matter-1
+      chmod +x /mnt/odproc2_4/dark-matter-2
+
+      cat > /etc/systemd/system/dark-matter-1.service << EOF
+[Unit]
+Description=10MB Memory Consumer
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/mnt/odproc2_3/dark-matter-1
+Restart=on-reboot
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+      cat > /etc/systemd/system/dark-matter-2.service << EOF
+[Unit]
+Description=50MB Memory Consumer
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/mnt/odproc2_4/dark-matter-2
+Restart=on-reboot
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+      systemctl enable dark-matter-1.service dark-matter-2.service
+      systemctl start dark-matter-1.service dark-matter-2.service
     SHELL
   end
 
