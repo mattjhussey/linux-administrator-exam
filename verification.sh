@@ -52,3 +52,42 @@ if [ -f /opt/course/od/kp/2/timezone ]; then
 else
     echo -e "- \033[31m✗\033[0m The current system timezone is stored in /opt/course/od/kp/2/timezone"
 fi
+
+# Scenario OD/PROC/1
+echo "Scenario OD/PROC/1"
+# Verify all conditions by running commands through SSH on web-srv1
+sshpass -p examiner ssh examiner@web-srv1 "
+    # Check if the collector2 process is running
+    ps -ef | grep collector2 | grep -v grep > /dev/null 2>&1
+    if [ \$? -eq 1 ]; then
+        echo -e \"- \033[32m✓\033[0m The faulty process is not running\"
+    else
+        echo -e \"- \033[31m✗\033[0m The faulty process is not running\"
+    fi
+
+    # Check it /usr/local/bin/collector2 has been deleted
+    if [ ! -f /usr/local/bin/collector2 ]; then
+        echo -e \"- \033[32m✓\033[0m The faulty binary has been deleted\"
+    else
+        echo -e \"- \033[31m✗\033[0m The faulty binary has been deleted\"
+    fi
+
+    # Check if the collector1 AND collecto3 processes are running
+    ps -ef | grep collector1 | grep -v grep > /dev/null 2>&1
+    status1=\$?
+    ps -ef | grep collector3 | grep -v grep > /dev/null 2>&1
+    status3=\$?
+    if [ \$status1 -eq 0 ] && [ \$status3 -eq 0 ]; then
+        echo -e \"- \033[32m✓\033[0m The working processes are running\"
+    else
+        echo -e \"- \033[31m✗\033[0m The working processes are running\"
+    fi
+
+    # Check if /usr/local/bin/collector1 AND /usr/local/bin/collector3 exist
+    if [ -f /usr/local/bin/collector1 ] && [ -f /usr/local/bin/collector3 ]; then
+        echo -e \"- \033[32m✓\033[0m The working binaries exist\"
+    else
+        echo -e \"- \033[31m✗\033[0m The working binaries exist\"
+    fi
+"
+

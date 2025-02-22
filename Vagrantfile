@@ -47,7 +47,7 @@ Vagrant.configure("2") do |config|
   # configures the configuration version (we support older styles for
   # backwards compatibility). Please don't change it unless you know what
 # you're doing.
-  config.vm.define "lfcsstudent" do |lfcsstudent|
+  config.vm.define "lfcs-student" do |lfcsstudent|
     # The most common configuration options are documented and commented below.
     # For a complete reference, please see the online documentation at
     # https://docs.vagrantup.com.
@@ -145,6 +145,9 @@ Vagrant.configure("2") do |config|
   
     # Update installed packages
     lfcsstudent.vm.provision :shell, inline: "apt-get upgrade -y"
+
+    # Add extra packages
+    lfcsstudent.vm.provision :shell, inline: "apt install sshpass -y"
     
     # # Add extra packages
     # ubuntu.vm.provision :shell, inline: "apt-get install -y acl tree locate gcc make perl ntpdate"
@@ -192,68 +195,97 @@ Vagrant.configure("2") do |config|
       # Create user with sudo access
       useradd -m -s /bin/bash -G sudo student
       echo "student:student" | chpasswd
-      
+      echo "student ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/student
+
+      useradd -m -s /bin/bash -c "Examiner" -G sudo examiner
+      echo "examiner:examiner" | chpasswd 
+      echo "examiner ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/examiner
       
       # Create null process script
-      cat > /usr/local/bin/null_process.sh << 'EOF'
+      cat > /usr/local/bin/collector1 << 'EOF'
 #!/bin/bash
 while true; do
     sleep 5
 done
 EOF
 
-      # Make script executable and create services
-      chmod +x /usr/local/bin/null_process.sh
-      cat > /etc/systemd/system/collector1.service << 'EOF'
-[Unit]
-Description=Process that calls does nothing syscall periodically
-
-[Service]
-ExecStart=/usr/local/bin/null_process.sh
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
-      cat > /etc/systemd/system/collector3.service << 'EOF'
-[Unit]
-Description=Process that calls does nothing syscall periodically
-
-[Service]
-ExecStart=/usr/local/bin/null_process.sh
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
       # Create kill process script
-      cat > /usr/local/bin/kill_process.sh << 'EOF'
+      cat > /usr/local/bin/collector2 << 'EOF'
 #!/bin/bash
 while true; do
     kill -0 1
     sleep 5
 done
 EOF
+      # Create null process script
+      cat > /usr/local/bin/collector3 << 'EOF'
+#!/bin/bash
+while true; do
+    sleep 5
+done
+EOF
 
-      # Make script executable and create service
-      chmod +x /usr/local/bin/kill_process.sh
-      cat > /etc/systemd/system/collector2.service << 'EOF'
+      # Make scripts executable
+      chmod +x /usr/local/bin/collector1
+      chmod +x /usr/local/bin/collector2
+      chmod +x /usr/local/bin/collector3
+
+      # Create systemd service files
+      cat > /etc/systemd/system/collector1.service << EOF
 [Unit]
-Description=Process that calls kill syscall periodically
+Description=Collector Process 1
+After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/kill_process.sh
-Restart=always
+Type=simple
+ExecStart=/usr/local/bin/collector1
+Restart=on-reboot
+RestartSec=0
+StartLimitInterval=0
 
 [Install]
 WantedBy=multi-user.target
 EOF
-      
-      # Enable and start service
-      systemctl enable collector1
-      systemctl enable collector2
-      systemctl enable collector3
+
+      cat > /etc/systemd/system/collector2.service << EOF
+[Unit]
+Description=Collector Process 2
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/collector2
+Restart=on-reboot
+RestartSec=0
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+      cat > /etc/systemd/system/collector3.service << EOF
+[Unit]
+Description=Collector Process 3
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/collector3
+Restart=on-reboot
+RestartSec=0
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+      # Enable and start the services
+      systemctl enable collector1.service
+      systemctl enable collector2.service
+      systemctl enable collector3.service
+      systemctl start collector1.service
+      systemctl start collector2.service
+      systemctl start collector3.service
     SHELL
   end
 
