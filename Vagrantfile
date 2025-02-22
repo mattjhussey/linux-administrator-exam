@@ -47,19 +47,14 @@ Vagrant.configure("2") do |config|
   # configures the configuration version (we support older styles for
   # backwards compatibility). Please don't change it unless you know what
   # you're doing.
-  config.vm.define "ubuntu-ui" do |ubuntu|
+  config.vm.define "lfcsstudent" do |lfcsstudent|
     # The most common configuration options are documented and commented below.
     # For a complete reference, please see the online documentation at
     # https://docs.vagrantup.com.
 
     # Every Vagrant development environment requires a box. You can search for
     # boxes at https://vagrantcloud.com/search.
-    ubuntu.vm.box = "ubuntu/jammy64"
-
-    # Disable automatic box update checking. If you disable this, then
-    # boxes will only be checked for updates when the user runs
-    # `vagrant box outdated`. This is not recommended.
-    # config.vm.box_check_update = false
+    lfcsstudent.vm.box = "ubuntu/jammy64"
 
     # Create a forwarded port mapping which allows access to a specific port
     # within the machine from a port on the host machine. In the example below,
@@ -96,41 +91,46 @@ Vagrant.configure("2") do |config|
     #
     # View the documentation for the provider you are using for more
     # information on available options.
-    ubuntu.vm.provider "virtualbox" do |vbox|
-      vbox.name = "ubuntu-lsa-ui"
+    lfcsstudent.vm.provider "virtualbox" do |vbox|
+      vbox.name = "lfcs-student"
     
       # Display the VirtualBox GUI when booting the machine
       vbox.gui = true
 
-      # Enable graphics card. The default does not work
-      vbox.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+      # Disable mouse capturing
+      vbox.customize ["setextradata", :id, "GUI/MouseCapturePolicy", "Disabled"]
 
-      # Create a DVD device to allow guest additions to be attached
-      vbox.customize ["storageattach", :id,
-              "--storagectl", "IDE",
-              "--port", "0",
-              "--device", "1",
-              "--type", "dvddrive",
-              "--medium", "emptydrive"]
+    #   # Enable graphics card. The default does not work
+    #   vbox.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
 
-      # Increase memory to improve performance
-      vbox.memory = "2048"
+    #   # Create a DVD device to allow guest additions to be attached
+    #   vbox.customize ["storageattach", :id,
+    #           "--storagectl", "IDE",
+    #           "--port", "0",
+    #           "--device", "1",
+    #           "--type", "dvddrive",
+    #           "--medium", "emptydrive"]
 
-      # Enable graphics card. The default does not work
-      vbox.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+    #   # Increase memory to improve performance
+    #   vbox.memory = "2048"
 
-      # Enable bidirectional clipboard
-      vbox.customize ["modifyvm", :id, "--clipboard-mode", "bidirectional"]
+    #   # Enable graphics card. The default does not work
+    #   vbox.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+
+    #   # Enable bidirectional clipboard
+    #   vbox.customize ["modifyvm", :id, "--clipboard-mode", "bidirectional"]
     end
     
-    # Add user assetman
-    ubuntu.vm.provision :shell, inline: <<-SHELL
-      useradd -m -s /bin/bash assetman
-      echo "assetman:assetman" | chpasswd
+    # Add users
+    lfcsstudent.vm.provision :shell, inline: <<-SHELL
+      useradd -m -s /bin/bash -c "Student" -G sudo student
+      echo "student:student" | chpasswd
+      # Add student to sudoers with no password
+      echo "student ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/student
     SHELL
   
     # Set keyboard to UK layout persistently
-    ubuntu.vm.provision :shell, inline: <<-SHELL
+    lfcsstudent.vm.provision :shell, inline: <<-SHELL
       echo 'XKBMODEL="pc105"' > /etc/default/keyboard
       echo 'XKBLAYOUT="gb"' >> /etc/default/keyboard
       echo 'XKBVARIANT=""' >> /etc/default/keyboard
@@ -140,29 +140,29 @@ Vagrant.configure("2") do |config|
     SHELL
   
     # Update repositories
-    ubuntu.vm.provision :shell, inline: "apt-get update -y"
+    lfcsstudent.vm.provision :shell, inline: "apt-get update -y"
   
     # Update installed packages
-    ubuntu.vm.provision :shell, inline: "apt-get upgrade -y"
+    lfcsstudent.vm.provision :shell, inline: "apt-get upgrade -y"
     
-    # Add extra packages
-    ubuntu.vm.provision :shell, inline: "apt-get install -y acl tree locate gcc make perl ntpdate"
+    # # Add extra packages
+    # ubuntu.vm.provision :shell, inline: "apt-get install -y acl tree locate gcc make perl ntpdate"
   
-    # Install Virtual Box Guest Additions (Manual for now)
+    # # Install Virtual Box Guest Additions (Manual for now)
   
-    # Allow SSH with password
-    ubuntu.vm.provision :shell, inline: "sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config"
+    # # Allow SSH with password
+    # ubuntu.vm.provision :shell, inline: "sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config"
 
-    # Add desktop environment
-    ubuntu.vm.provision :shell, inline: "apt-get install -y ubuntu-desktop"
+    # # Add desktop environment
+    # ubuntu.vm.provision :shell, inline: "apt-get install -y ubuntu-desktop"
 
-    # Add UI packages
-    ubuntu.vm.provision :shell, inline: "apt-get install -y gnome-software gnome-tweaks synaptic"
+    # # Add UI packages
+    # ubuntu.vm.provision :shell, inline: "apt-get install -y gnome-software gnome-tweaks synaptic"
 
-    # Install Virtual Box Guest Additions (Manual for now)
+    # # Install Virtual Box Guest Additions (Manual for now)
 
-    # Restart
-    ubuntu.vm.provision :shell, inline: "shutdown -r now"
+    # # Restart
+    # ubuntu.vm.provision :shell, inline: "shutdown -r now"
   end
 
 end
