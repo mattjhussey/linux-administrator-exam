@@ -272,3 +272,30 @@ if sudo crontab -l -u asset-manager | grep -q "^0 4 \* \* 3 find /home/asset-man
 else
     echo -e "- \033[31m✗\033[0m There is a cron job for user asset-manager scheduled to run every Wednesday at 4AM and calls find /home/asset-manager/ -type d -empty -delete"
 fi
+
+# Scenario OD/SCHED/4
+echo "Scenario OD/SCHED/4"
+# Verify that /opt/odsched4.sh is executable
+if [ -x /opt/odsched4.sh ]; then
+    echo -e "- \033[32m✓\033[0m /opt/odsched4.sh is executable"
+else
+    echo -e "- \033[31m✗\033[0m /opt/odsched4.sh is executable"
+fi
+# Verify that /opt/odsched4.sh has a shebang line
+if head -n 1 /opt/odsched4.sh | grep -q "^#!/bin/bash"; then
+    echo -e "- \033[32m✓\033[0m /opt/odsched4.sh has a shebang line"
+else
+    echo -e "- \033[31m✗\033[0m /opt/odsched4.sh has a shebang line"
+fi
+# Verify that /opt/odsched4.sh will copy /var/www/ to /opt/www-backup/ and preserve properties
+if [ $(cat /opt/odsched4.sh | grep "cp -a /var/www/. /opt/www-backup/" | wc -l) -eq 1 ]; then
+    echo -e "- \033[32m✓\033[0m /opt/odsched4.sh will copy /var/www/ to /opt/www-backup/ and preserve properties"
+else
+    echo -e "- \033[31m✗\033[0m /opt/odsched4.sh will copy /var/www/ to /opt/www-backup/ and preserve properties"
+fi
+# Verify that the system-wide /etc/crontab has an entry to execute /opt/odsched4.sh every day at 4AM under user root
+if grep -q "0 4 \* \* \* root /opt/odsched4.sh" /etc/crontab; then
+    echo -e "- \033[32m✓\033[0m The system-wide /etc/crontab has an entry to execute /opt/odsched4.sh every day at 4AM under user root"
+else
+    echo -e "- \033[31m✗\033[0m The system-wide /etc/crontab has an entry to execute /opt/odsched4.sh every day at 4AM under user root"
+fi
