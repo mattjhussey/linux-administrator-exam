@@ -112,8 +112,8 @@ Vagrant.configure("2") do |config|
     #           "--type", "dvddrive",
     #           "--medium", "emptydrive"]
 
-    #   # Increase memory to improve performance
-    #   vbox.memory = "2048"
+      # Increase memory to improve performance
+      vbox.memory = "2048"
 
     #   # Enable graphics card. The default does not work
     #   vbox.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
@@ -176,7 +176,7 @@ Vagrant.configure("2") do |config|
     
     websrv.vm.provider "virtualbox" do |vbox|
       vbox.name = "web-srv1"
-      vbox.memory = "1024"
+      vbox.memory = "2048"
     end
 
     # Create a private network for SSH access
@@ -192,6 +192,68 @@ Vagrant.configure("2") do |config|
       # Create user with sudo access
       useradd -m -s /bin/bash -G sudo student
       echo "student:student" | chpasswd
+      
+      
+      # Create null process script
+      cat > /usr/local/bin/null_process.sh << 'EOF'
+#!/bin/bash
+while true; do
+    sleep 5
+done
+EOF
+
+      # Make script executable and create services
+      chmod +x /usr/local/bin/null_process.sh
+      cat > /etc/systemd/system/collector1.service << 'EOF'
+[Unit]
+Description=Process that calls does nothing syscall periodically
+
+[Service]
+ExecStart=/usr/local/bin/null_process.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+      cat > /etc/systemd/system/collector3.service << 'EOF'
+[Unit]
+Description=Process that calls does nothing syscall periodically
+
+[Service]
+ExecStart=/usr/local/bin/null_process.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+      # Create kill process script
+      cat > /usr/local/bin/kill_process.sh << 'EOF'
+#!/bin/bash
+while true; do
+    kill -0 1
+    sleep 5
+done
+EOF
+
+      # Make script executable and create service
+      chmod +x /usr/local/bin/kill_process.sh
+      cat > /etc/systemd/system/collector2.service << 'EOF'
+[Unit]
+Description=Process that calls kill syscall periodically
+
+[Service]
+ExecStart=/usr/local/bin/kill_process.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+      
+      # Enable and start service
+      systemctl enable collector1
+      systemctl enable collector2
+      systemctl enable collector3
     SHELL
   end
 
