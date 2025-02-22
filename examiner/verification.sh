@@ -239,3 +239,12 @@ if [ $(cat /opt/odproc5.txt) == "www-data" ]; then
 else
     echo -e "- \033[31m✗\033[0m /opt/odproc5.txt contains the string \"www-data\""
 fi
+
+# Scenario OD/SCHED/1
+echo "Scenario OD/SCHED/1"
+# Verify that there is a cron job scheduled to kill all processes named "scan_filesystem" every minute as root
+if sudo crontab -l -u root | grep -q "^\* \* \* \* \* killall -9 scan_filesystem"; then
+    echo -e "- \033[32m✓\033[0m There is a cron job scheduled to kill all processes named \"scan_filesystem\" every minute"
+else
+    echo -e "- \033[31m✗\033[0m There is a cron job scheduled to kill all processes named \"scan_filesystem\" every minute"
+fi
