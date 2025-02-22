@@ -181,3 +181,19 @@ if ! sshpass -p examiner ssh examiner@web-srv2 "
 "; then
     echo -e "- \033[31m✗\033[0m Failed to connect to web-srv2"
 fi
+
+# Scenario OD/PROC/4
+echo "Scenario OD/PROC/4"
+# Verify that the first line of the file /opt/odproc4.txt is the string "nginx"
+if [ $(head -n 1 /opt/odproc4.txt) == "nginx" ]; then
+    echo -e "- \033[32m✓\033[0m The first line of /opt/odproc4.txt is the string \"nginx\""
+else
+    echo -e "- \033[31m✗\033[0m The first line of /opt/odproc4.txt is the string \"nginx\""
+fi
+# Verify that the second line of the file /opt/odproc4.txt is pid of the nginx master process
+pid=$(ps -ef | grep nginx | grep master | awk '{print $2}')
+if [ $(sed -n '2p' /opt/odproc4.txt) == $pid ]; then
+    echo -e "- \033[32m✓\033[0m The second line of /opt/odproc4.txt is the pid of the nginx master process"
+else
+    echo -e "- \033[31m✗\033[0m The second line of /opt/odproc4.txt is the pid of the nginx master process"
+fi

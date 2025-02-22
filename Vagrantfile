@@ -300,6 +300,13 @@ EOF
       systemctl enable dark-matter-1.service dark-matter-2.service
       systemctl start dark-matter-1.service dark-matter-2.service
     SHELL
+
+    # Set up OD/PROC/3
+    lfcsstudent.vm.provision :shell, inline: <<-SHELL
+      apt install -y nginx
+      systemctl enable nginx
+      systemctl start nginx
+    SHELL
   end
 
   config.vm.define "web-srv1" do |websrv|
