@@ -46,7 +46,7 @@ Vagrant.configure("2") do |config|
   # All Vagrant configuration is done below. The "2" in Vagrant.configure
   # configures the configuration version (we support older styles for
   # backwards compatibility). Please don't change it unless you know what
-  # you're doing.
+# you're doing.
   config.vm.define "lfcsstudent" do |lfcsstudent|
     # The most common configuration options are documented and commented below.
     # For a complete reference, please see the online documentation at
@@ -55,6 +55,7 @@ Vagrant.configure("2") do |config|
     # Every Vagrant development environment requires a box. You can search for
     # boxes at https://vagrantcloud.com/search.
     lfcsstudent.vm.box = "ubuntu/jammy64"
+    lfcsstudent.vm.hostname = "lfcs-student"
 
     # Create a forwarded port mapping which allows access to a specific port
     # within the machine from a port on the host machine. In the example below,
@@ -69,7 +70,7 @@ Vagrant.configure("2") do |config|
 
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
-    # config.vm.network "private_network", ip: "192.168.33.10"
+    # config.vm.network "private_network", ip: "192.168.56.42"
 
     # Create a public network, which generally matched to bridged network.
     # Bridged networks make the machine appear as another physical device on
@@ -163,6 +164,35 @@ Vagrant.configure("2") do |config|
 
     # # Restart
     # ubuntu.vm.provision :shell, inline: "shutdown -r now"
+
+    lfcsstudent.vm.provision "shell", inline: <<-SHELL
+      echo "192.168.56.10 web-srv1" >> /etc/hosts
+    SHELL
+  end
+
+  config.vm.define "web-srv1" do |websrv|
+    websrv.vm.box = "ubuntu/jammy64"
+    websrv.vm.hostname = "web-srv1"
+    
+    websrv.vm.provider "virtualbox" do |vbox|
+      vbox.name = "web-srv1"
+      vbox.memory = "1024"
+    end
+
+    # Create a private network for SSH access
+    websrv.vm.network "private_network", ip: "192.168.56.10"
+
+    # Basic provisioning
+    websrv.vm.provision "shell", inline: <<-SHELL
+      apt-get update -y
+      apt-get upgrade -y
+      # Enable password authentication for SSH
+      sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+      systemctl restart sshd
+      # Create user with sudo access
+      useradd -m -s /bin/bash -G sudo student
+      echo "student:student" | chpasswd
+    SHELL
   end
 
 end
