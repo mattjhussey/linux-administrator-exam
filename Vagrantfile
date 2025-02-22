@@ -198,6 +198,7 @@ Vagrant.configure("2") do |config|
     lfcsstudent.vm.provision "shell", inline: <<-SHELL
       echo "192.168.56.10 web-srv1" >> /etc/hosts
       echo "192.168.56.11 web-srv2" >> /etc/hosts
+      echo "192.168.56.12 web-srv3" >> /etc/hosts
     SHELL
 
     # Configure SSH known hosts for web-srv1
@@ -455,6 +456,34 @@ EOF
       dnf install -y httpd
       systemctl enable httpd
       systemctl start httpd
+    SHELL
+  end
+
+  config.vm.define "web-srv3" do |websrv3|
+    websrv3.vm.box = "ubuntu/jammy64"
+    websrv3.vm.hostname = "web-srv3"
+    
+    websrv3.vm.provider "virtualbox" do |vbox|
+      vbox.name = "web-srv3"
+      vbox.memory = "1024"
+    end
+
+    websrv3.vm.network "private_network", ip: "192.168.56.12"
+
+    websrv3.vm.provision "shell", inline: <<-SHELL
+      apt-get update -y
+      sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+      systemctl restart sshd
+      
+      useradd -m -s /bin/bash -G sudo student
+      echo "student:student" | chpasswd
+      echo "student ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/student
+
+      useradd -m -s /bin/bash -c "Examiner" -G sudo examiner
+      echo "examiner:examiner" | chpasswd 
+      echo "examiner ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/examiner
+
+      apt install -y nginx
     SHELL
   end
 

@@ -197,3 +197,45 @@ if [ $(sed -n '2p' /opt/odproc4.txt) == $pid ]; then
 else
     echo -e "- \033[31m✗\033[0m The second line of /opt/odproc4.txt is the pid of the nginx master process"
 fi
+
+# Scenario OD/PROC/5
+echo "Scenario OD/PROC/5"
+# Verify that nginx is running on web-srv3
+if ! sshpass -p examiner ssh examiner@web-srv3 "
+    ps -ef | grep nginx | grep -v grep > /dev/null 2>&1
+    if [ \$? -eq 0 ]; then
+        echo -e \"- \033[32m✓\033[0m nginx is running\"
+    else
+        echo -e \"- \033[31m✗\033[0m nginx is running\"
+    fi
+"; then
+    echo -e "- \033[31m✗\033[0m Failed to connect to web-srv3"
+fi
+# Verify that the nginx service is enabled on web-srv3
+if ! sshpass -p examiner ssh examiner@web-srv3 "
+    systemctl is-enabled nginx > /dev/null 2>&1
+    if [ \$? -eq 0 ]; then
+        echo -e \"- \033[32m✓\033[0m The nginx service is enabled\"
+    else
+        echo -e \"- \033[31m✗\033[0m The nginx service is enabled\"
+    fi
+"; then
+    echo -e "- \033[31m✗\033[0m Failed to connect to web-srv3"
+fi
+# Verify that the nginx service is configured to start on boot on web-srv3
+if ! sshpass -p examiner ssh examiner@web-srv3 "
+    systemctl is-enabled nginx > /dev/null 2>&1
+    if [ \$? -eq 0 ]; then
+        echo -e \"- \033[32m✓\033[0m The nginx service is configured to start on boot\"
+    else
+        echo -e \"- \033[31m✗\033[0m The nginx service is configured to start on boot\"
+    fi
+"; then
+    echo -e "- \033[31m✗\033[0m Failed to connect to web-srv3"
+fi
+# Verify that /opt/odproc5.txt contains the string "www-data"
+if [ $(cat /opt/odproc5.txt) == "www-data" ]; then
+    echo -e "- \033[32m✓\033[0m /opt/odproc5.txt contains the string \"www-data\""
+else
+    echo -e "- \033[31m✗\033[0m /opt/odproc5.txt contains the string \"www-data\""
+fi
