@@ -172,9 +172,23 @@ Vagrant.configure("2") do |config|
       dpkg-reconfigure -f noninteractive keyboard-configuration
       setupcon --force
     SHELL
-  
+
+    # Switch to uk mirror
+    lfcsstudent.vm.provision :shell, inline: <<-SHELL
+      sed -i 's|http://archive.ubuntu.com/ubuntu|http://gb.archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list
+      # Update security mirrors
+      sed -i 's|http://security.ubuntu.com/ubuntu|http://gb.archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list
+    SHELL
+
+    # # Switching to alternative mirrors because the default ones hang
+    # lfcsstudent.vm.provision :shell, inline: <<-SHELL
+    #   sed -i 's|http://archive.ubuntu.com/ubuntu|http://mirror.math.princeton.edu/pub/ubuntu|g' /etc/apt/sources.list
+    #   # Update security mirrors
+    #   sed -i 's|http://security.ubuntu.com/ubuntu|http://mirror.math.princeton.edu/pub/ubuntu|g' /etc/apt/sources.list
+    # SHELL
+
     # Update repositories
-    lfcsstudent.vm.provision :shell, inline: "apt-get update -y"
+    lfcsstudent.vm.provision :shell, inline: "apt-get update"
   
     # Update installed packages
     # lfcsstudent.vm.provision :shell, inline: "apt-get upgrade -y"
@@ -347,6 +361,13 @@ EOF
     # Create a private network for SSH access
     websrv.vm.network "private_network", ip: "192.168.56.10"
 
+    # Switch to uk mirror
+    websrv.vm.provision :shell, inline: <<-SHELL
+      sed -i 's|http://archive.ubuntu.com/ubuntu|http://gb.archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list
+      # Update security mirrors
+      sed -i 's|http://security.ubuntu.com/ubuntu|http://gb.archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list
+    SHELL
+
     # Basic provisioning
     websrv.vm.provision "shell", inline: <<-SHELL
       apt-get update -y
@@ -452,6 +473,7 @@ EOF
 
     # Set up OD/VIRT/1
     websrv.vm.provision :shell, inline: <<-SHELL
+      mkdir -p /var/lib/libvirt/images
       curl -o /var/lib/libvirt/images/ubuntu.img https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
     SHELL
   end
@@ -500,6 +522,13 @@ EOF
 
     websrv3.vm.network "private_network", ip: "192.168.56.12"
 
+    # Switch to uk mirror
+    websrv3.vm.provision :shell, inline: <<-SHELL
+      sed -i 's|http://archive.ubuntu.com/ubuntu|http://gb.archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list
+      # Update security mirrors
+      sed -i 's|http://security.ubuntu.com/ubuntu|http://gb.archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list
+    SHELL
+
     websrv3.vm.provision "shell", inline: <<-SHELL
       apt-get update -y
       sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
@@ -528,6 +557,13 @@ EOF
     end
 
     appdev1.vm.network "private_network", ip: "192.168.56.13"
+
+    # Switch to uk mirror
+    appdev1.vm.provision :shell, inline: <<-SHELL
+      sed -i 's|http://archive.ubuntu.com/ubuntu|http://gb.archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list
+      # Update security mirrors
+      sed -i 's|http://security.ubuntu.com/ubuntu|http://gb.archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list
+    SHELL
 
     appdev1.vm.provision "shell", inline: <<-SHELL
       apt-get update -y
