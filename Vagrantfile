@@ -523,7 +523,7 @@ EOF
     websrv2.vm.network "private_network", ip: "192.168.56.11"
 
     websrv2.vm.provision "shell", inline: <<-SHELL
-      dnf update -y
+      # dnf update -y
       # Enable password authentication for SSH
       sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
       systemctl restart sshd
