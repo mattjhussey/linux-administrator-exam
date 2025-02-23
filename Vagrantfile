@@ -373,9 +373,6 @@ EOF
       docker run --name frontend_v1 -d -p 8080:80 --restart unless-stopped nginx
       docker run --name frontend_v2 -d -p 8081:80 -v /opt/oddock1/mnt:/things --restart unless-stopped nginx
     SHELL
-
-
-      docker run 
   end
 
   config.vm.define "web-srv1" do |websrv|
