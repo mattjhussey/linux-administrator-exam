@@ -452,7 +452,6 @@ else
     echo -e "- \033[31m✗\033[0m A container with name \"apache_container\" based on the \"httpd\" image is running with port 8083 mapped to port 80 and set to restart only on failure up to 3 times"
 fi
 
-
 # Scenario OD/SEL/1
 echo "Scenario OD/SEL/1"
 # Verify that the file /opt/odsel1/selinuxmode.txt contains the string "permissive"
@@ -475,3 +474,37 @@ if ! sshpass -p examiner ssh examiner@web-srv2 "
 "; then
     echo -e "- \033[31m✗\033[0m Failed to connect to web-srv2"
 fi
+
+# Scenario OD/SEL/2
+echo "Scenario OD/SEL/2"
+# Verify that /home/student/odsel2perms.txt on web-srv2 has the SELinux user context "init_exec_t"
+if ! sshpass -p examiner ssh examiner@web-srv2 "
+    if [ \$(ls -Z /opt/odsel2/perms.txt | awk -F: '{print \$3}') == \"init_exec_t\" ]; then
+        echo -e \"- \033[32m✓\033[0m /opt/odsel2/perms.txt has the SELinux user context 'init_exec_t'\"
+    else
+        echo -e \"- \033[31m✗\033[0m /opt/odsel2/perms.txt has the SELinux user context 'init_exec_t'\"
+    fi
+"; then
+    echo -e "- \033[31m✗\033[0m Failed to connect to web-srv2"
+fi
+# Verify that /opt/odsel2/seenabled.txt on web-srv2 contains an SELinux sestatus output reporting containing "enabled"
+if ! sshpass -p examiner ssh examiner@web-srv2 "
+    if [ \$(cat /opt/odsel2/seenabled.txt | grep -c \"enforcing\") -eq 1 ]; then
+        echo -e \"- \033[32m✓\033[0m /opt/odsel2/seenabled.txt contains an SELinux sestatus output reporting containing 'enforcing'\"
+    else
+        echo -e \"- \033[31m✗\033[0m /opt/odsel2/seenabled.txt contains an SELinux sestatus output reporting containing 'enforcing'\"
+    fi
+"; then
+    echo -e "- \033[31m✗\033[0m Failed to connect to web-srv2"
+fi
+# Verify that SELinux on web-srv2 is in permissive mode
+if ! sshpass -p examiner ssh examiner@web-srv2 "
+    if [ \$(sestatus | grep \"Current mode\" | grep -c \"permissive\") -eq 1 ]; then
+        echo -e \"- \033[32m✓\033[0m SELinux on web-srv2 is in permissive mode\"
+    else
+        echo -e \"- \033[31m✗\033[0m SELinux on web-srv2 is in permissive mode\"
+    fi
+"; then
+    echo -e "- \033[31m✗\033[0m Failed to connect to web-srv2"
+fi
+
