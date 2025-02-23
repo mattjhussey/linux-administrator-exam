@@ -359,3 +359,76 @@ if [ "$(sudo virsh dominfo mockexam2 | grep "Autostart" | awk '{print $2}')" == 
 else
     echo -e "- \033[31m✗\033[0m The virtual machine 'mockexam2' is set to auto start on boot"
 fi
+
+# Scenario OD/DOCK/1
+echo "Scenario OD/DOCK/1"
+# Verify that docker container "frontend_v1" is stopped
+if sudo docker ps -a | grep -q "frontend_v1"; then
+    if [ $(sudo docker inspect -f '{{.State.Status}}' frontend_v1) == "exited" ]; then
+        echo -e "- \033[32m✓\033[0m Docker container \"frontend_v1\" is stopped"
+    else
+        echo -e "- \033[31m✗\033[0m Docker container \"frontend_v1\" is stopped"
+    fi
+else
+    echo -e "- \033[31m✗\033[0m Docker container \"frontend_v1\" is stopped"
+fi
+# Verify that docker container "frontenv_v2" is running
+if sudo docker ps -a | grep -q "frontend_v2"; then
+    if [ $(sudo docker inspect -f '{{.State.Status}}' frontend_v2) == "running" ]; then
+        echo -e "- \033[32m✓\033[0m Docker container \"frontend_v2\" is running"
+    else
+        echo -e "- \033[31m✗\033[0m Docker container \"frontend_v2\" is running"
+    fi
+else
+    echo -e "- \033[31m✗\033[0m Docker container \"frontend_v2\" is running"
+fi
+# Verify that the file /opt/oddock1/ip-address contains the IP address of the "frontend_v2" container
+if [ -f /opt/oddock1/ip-address ]; then
+    ip=$(sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' frontend_v2)
+    if [ $(cat /opt/oddock1/ip-address) == $ip ]; then
+        echo -e "- \033[32m✓\033[0m The file /opt/oddock1/ip-address contains the IP address of the \"frontend_v2\" container"
+    else
+        echo -e "- \033[31m✗\033[0m The file /opt/oddock1/ip-address contains the IP address of the \"frontend_v2\" container"
+    fi
+else
+    echo -e "- \033[31m✗\033[0m The file /opt/oddock1/ip-address contains the IP address of the \"frontend_v2\" container"
+fi
+# Verify that the file /opt/oddock1/mount-destination contains the mount destination of the "frontend_v2" container
+if [ -f /opt/oddock1/mount-destination ]; then
+    mount=$(sudo docker inspect -f '{{range .Mounts}}{{.Destination}}{{end}}' frontend_v2)
+    if [ $(cat /opt/oddock1/mount-destination) == $mount ]; then
+        echo -e "- \033[32m✓\033[0m The file /opt/oddock1/mount-destination contains the mount destination of the \"frontend_v2\" container"
+    else
+        echo -e "- \033[31m✗\033[0m The file /opt/oddock1/mount-destination contains the mount destination of the \"frontend_v2\" container"
+    fi
+else
+    echo -e "- \033[31m✗\033[0m The file /opt/oddock1/mount-destination contains the mount destination of the \"frontend_v2\" container"
+fi
+# Verify that docker container "frontend_v3" is running
+if sudo docker ps -a | grep -q "frontend_v3"; then
+    if [ $(sudo docker inspect -f '{{.State.Status}}' frontend_v3) == "running" ]; then
+        echo -e "- \033[32m✓\033[0m Docker container \"frontend_v3\" is running"
+    else
+        echo -e "- \033[31m✗\033[0m Docker container \"frontend_v3\" is running"
+    fi
+else
+    echo -e "- \033[31m✗\033[0m Docker container \"frontend_v3\" is running"
+fi
+# Verify that docker container "frontend_v3" is using the "nginx:alpine" image
+if [ $(sudo docker inspect -f '{{.Config.Image}}' frontend_v3) == "nginx:alpine" ]; then
+    echo -e "- \033[32m✓\033[0m Docker container \"frontend_v3\" is using the \"nginx:alpine\" image"
+else
+    echo -e "- \033[31m✗\033[0m Docker container \"frontend_v3\" is using the \"nginx:alpine\" image"
+fi
+# Verify that docker container "frontend_v3" has a 30M memory limit
+if [ $(sudo docker inspect -f '{{.HostConfig.Memory}}' frontend_v3) == 31457280 ]; then
+    echo -e "- \033[32m✓\033[0m Docker container \"frontend_v3\" has a 30M memory limit"
+else
+    echo -e "- \033[31m✗\033[0m Docker container \"frontend_v3\" has a 30M memory limit"
+fi
+# Verify that docker container "frontend_v3" has port 1234 mapped to port 80
+if sudo docker inspect frontend_v3 --format='{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' | grep -q "1234"; then
+    echo -e "- \033[32m✓\033[0m Docker container \"frontend_v3\" has port 1234 mapped to port 80"
+else
+    echo -e "- \033[31m✗\033[0m Docker container \"frontend_v3\" has port 1234 mapped to port 80"
+fi

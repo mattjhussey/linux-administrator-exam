@@ -194,7 +194,7 @@ Vagrant.configure("2") do |config|
     # lfcsstudent.vm.provision :shell, inline: "apt-get upgrade -y"
 
     # Add extra packages
-    lfcsstudent.vm.provision :shell, inline: "apt install sshpass bzip2 build-essential virtinst libvirt-daemon-system -y"
+    lfcsstudent.vm.provision :shell, inline: "apt install sshpass bzip2 build-essential virtinst libvirt-daemon-system docker.io -y"
     
     # # Add extra packages
     # ubuntu.vm.provision :shell, inline: "apt-get install -y acl tree locate gcc make perl ntpdate"
@@ -226,17 +226,34 @@ Vagrant.configure("2") do |config|
     lfcsstudent.vm.provision :shell, inline: <<-SHELL
       mkdir -p /home/student/.ssh
 
-      cp /examiner/known_hosts /home/student/.ssh/known_hosts
-      chown student:student /home/student/.ssh/known_hosts
-      chmod 644 /home/student/.ssh/known_hosts
-
       for ip in 192.168.56.{10..13}; do
         ssh-keyscan -H $ip >> /home/student/.ssh/known_hosts 2>/dev/null
       done
       echo "StrictHostKeyChecking no" > /home/student/.ssh/config
       chown -R student:student /home/student/.ssh
       chmod 700 /home/student/.ssh
+      chmod 644 /home/student/.ssh/known_hosts
       chmod 600 /home/student/.ssh/config
+    SHELL
+
+    # Add a script that runs on boot to run a ssh-keyscan on all servers
+    lfcsstudent.vm.provision :shell, inline: <<-SHELL
+      cat > /etc/systemd/system/ssh-keyscan.service << EOF
+[Unit]
+Description=SSH Key Scan
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c "for ip in 192.168.56.{10..13}; do ssh-keyscan -H \$ip >> /home/student/.ssh/known_hosts 2>/dev/null; done"
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+      systemctl enable ssh-keyscan.service
+      systemctl start ssh-keyscan.service
     SHELL
 
     # Add disk mounting
@@ -347,6 +364,18 @@ EOF
 30 20 * * * root /home/asset-manager/clean.sh
 EOF
     SHELL
+
+    # Set up OD/DOCK/1
+    lfcsstudent.vm.provision :shell, inline: <<-SHELL
+      systemctl enable docker
+      systemctl start docker
+      # Create any small container with the name "frontend_v1" as an example. It should start on boot
+      docker run --name frontend_v1 -d -p 8080:80 --restart unless-stopped nginx
+      docker run --name frontend_v2 -d -p 8081:80 -v /opt/oddock1/mnt:/things --restart unless-stopped nginx
+    SHELL
+
+
+      docker run 
   end
 
   config.vm.define "web-srv1" do |websrv|
