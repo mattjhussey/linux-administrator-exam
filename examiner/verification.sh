@@ -520,3 +520,30 @@ if ! sshpass -p examiner ssh examiner@web-srv2 "
 "; then
     echo -e "- \033[31m✗\033[0m Failed to connect to web-srv2"
 fi
+
+# Scenario NET/IP/1
+echo "Scenario NET/IP/1"
+# Verify that /home/student/apps/netip1.sh is executable
+if [ -x /home/student/apps/netip1.sh ]; then
+    echo -e "- \033[32m✓\033[0m /home/student/apps/netip1.sh is executable"
+else
+    echo -e "- \033[31m✗\033[0m /home/student/apps/netip1.sh is executable"
+fi
+# Verify that /home/student/apps/netip1.sh has a shebang line
+if head -n 1 /home/student/apps/netip1.sh | grep -q "^#!/bin/bash"; then
+    echo -e "- \033[32m✓\033[0m /home/student/apps/netip1.sh has a shebang line"
+else
+    echo -e "- \033[31m✗\033[0m /home/student/apps/netip1.sh has a shebang line"
+fi
+# Verify that the first line of output from /home/student/apps/netip1.sh is the name of the invoking user
+if [ $(/home/student/apps/netip1.sh | head -n 1) == "student" ]; then
+    echo -e "- \033[32m✓\033[0m The first line of output from /home/student/apps/netip1.sh is the name of the invoking user"
+else
+    echo -e "- \033[31m✗\033[0m The first line of output from /home/student/apps/netip1.sh is the name of the invoking user"
+fi
+# Verify that the second line of output from /home/student/apps/netip1.sh is the IP address of the default gateway
+if [ $(/home/student/apps/netip1.sh | sed -n '2p') == $(ip route | grep default | awk '{print $3}') ]; then
+    echo -e "- \033[32m✓\033[0m The second line of output from /home/student/apps/netip1.sh is the IP address of the default gateway"
+else
+    echo -e "- \033[31m✗\033[0m The second line of output from /home/student/apps/netip1.sh is the IP address of the default gateway"
+fi
