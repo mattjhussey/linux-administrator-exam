@@ -451,3 +451,27 @@ if sudo docker ps -a | grep -q "apache_container"; then
 else
     echo -e "- \033[31m✗\033[0m A container with name \"apache_container\" based on the \"httpd\" image is running with port 8083 mapped to port 80 and set to restart only on failure up to 3 times"
 fi
+
+
+# Scenario OD/SEL/1
+echo "Scenario OD/SEL/1"
+# Verify that the file /opt/odsel1/selinuxmode.txt contains the string "permissive"
+if [ -f /opt/odsel1/selinuxmode.txt ]; then
+    if [ $(cat /opt/odsel1/selinuxmode.txt) == "Permissive" ]; then
+        echo -e "- \033[32m✓\033[0m The file /opt/odsel1/selinuxmode.txt contains the string \"permissive\""
+    else
+        echo -e "- \033[31m✗\033[0m The file /opt/odsel1/selinuxmode.txt contains the string \"permissive\""
+    fi
+else
+    echo -e "- \033[31m✗\033[0m The file /opt/odsel1/selinuxmode.txt contains the string \"permissive\""
+fi
+# Verify that /usr/bin/less on web-srv2 has the correct selinux context
+if ! sshpass -p examiner ssh examiner@web-srv2 "
+    if [ \$(ls -Z /usr/bin/less | awk '{print \$1}') == \"system_u:object_r:bin_t:s0\" ]; then
+        echo -e \"- \033[32m✓\033[0m /usr/bin/less has the correct selinux context\"
+    else
+        echo -e \"- \033[31m✗\033[0m /usr/bin/less has the correct selinux context\"
+    fi
+"; then
+    echo -e "- \033[31m✗\033[0m Failed to connect to web-srv2"
+fi

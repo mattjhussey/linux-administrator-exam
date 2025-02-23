@@ -70,7 +70,7 @@ Vagrant.configure("2") do |config|
 
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
-    # config.vm.network "private_network", ip: "192.168.56.42"
+    lfcsstudent.vm.network "private_network", ip: "192.168.56.42"
 
     # Create a public network, which generally matched to bridged network.
     # Bridged networks make the machine appear as another physical device on
@@ -81,7 +81,7 @@ Vagrant.configure("2") do |config|
     # the path on the host to the actual folder. The second argument is
     # the path on the guest to mount the folder. And the optional third
     # argument is a set of non-required options.
-    config.vm.synced_folder "./examiner", "/examiner"
+    lfcsstudent.vm.synced_folder "./examiner", "/examiner"
 
     # Disable the default share of the current code directory. Doing this
     # provides improved isolation between the vagrant box and your host
@@ -96,7 +96,7 @@ Vagrant.configure("2") do |config|
       vbox.name = "lfcs-student"
     
       # Display the VirtualBox GUI when booting the machine
-      vbox.gui = true
+      # vbox.gui = true
 
       # Disable mouse capturing
       vbox.customize ["setextradata", :id, "GUI/MouseCapturePolicy", "Disabled"]
@@ -216,6 +216,10 @@ Vagrant.configure("2") do |config|
     # ubuntu.vm.provision :shell, inline: "shutdown -r now"
 
     lfcsstudent.vm.provision "shell", inline: <<-SHELL
+      # Enable password authentication for SSH
+      sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+      systemctl restart sshd
+
       echo "192.168.56.10 web-srv1" >> /etc/hosts
       echo "192.168.56.11 web-srv2" >> /etc/hosts
       echo "192.168.56.12 web-srv3" >> /etc/hosts
@@ -541,6 +545,14 @@ EOF
       dnf install -y httpd
       systemctl enable httpd
       systemctl start httpd
+    SHELL
+
+    # Set up OD/SEL/1
+    websrv2.vm.provision :shell, inline: <<-SHELL
+      sed -i 's/SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
+      setenforce 0
+      # Set incorrect context
+      chcon -t init_exec_t /usr/bin/less
     SHELL
   end
 
