@@ -562,7 +562,7 @@ EOF
     
     websrv3.vm.provider "virtualbox" do |vbox|
       vbox.name = "web-srv3"
-      vbox.memory = "1024"
+      vbox.memory = "2048"
     end
 
     websrv3.vm.network "private_network", ip: "192.168.56.12"
