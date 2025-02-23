@@ -340,3 +340,22 @@ if ! sshpass -p examiner ssh examiner@app-dev1 "
 "; then
     echo -e "- \033[31m✗\033[0m Failed to connect to app-dev1"
 fi
+
+# Scenario OD/VIRT/1
+echo "Scenario OD/VIRT/1"
+# Verify that a virtual machine named 'mockexam2' exists and is configured to have 1 CPU, 1024MB of RAM, and uses ubuntu22.04 as the OS
+if sudo virsh list --all | grep -q "mockexam2"; then
+    if [ $(sudo virsh dominfo mockexam2 | grep "CPU(s)" | awk '{print $2}') -eq 1 ] && [ $(sudo virsh dominfo mockexam2 | grep "Max memory" | awk '{print $3}') -eq 1048576 ] && [ $(sudo virsh dominfo mockexam2 | grep "OS Type" | awk '{print $3}') == "hvm" ]; then
+        echo -e "- \033[32m✓\033[0m A virtual machine named 'mockexam2' exists and is configured to have 1 CPU, 1024MB of RAM, and uses ubuntu22.04 as the OS"
+    else
+        echo -e "- \033[31m✗\033[0m A virtual machine named 'mockexam2' exists and is configured to have 1 CPU, 1024MB of RAM, and uses ubuntu22.04 as the OS"
+    fi
+else
+    echo -e "- \033[31m✗\033[0m A virtual machine named 'mockexam2' exists and is configured to have 1 CPU, 1024MB of RAM, and uses ubuntu22.04 as the OS"
+fi
+# Verify that the virtual machine 'mockexam2' is set to auto start on boot
+if [ "$(sudo virsh dominfo mockexam2 | grep "Autostart" | awk '{print $2}')" == "enable" ]; then
+    echo -e "- \033[32m✓\033[0m The virtual machine 'mockexam2' is set to auto start on boot"
+else
+    echo -e "- \033[31m✗\033[0m The virtual machine 'mockexam2' is set to auto start on boot"
+fi

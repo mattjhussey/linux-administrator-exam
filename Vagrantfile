@@ -101,6 +101,9 @@ Vagrant.configure("2") do |config|
       # Disable mouse capturing
       vbox.customize ["setextradata", :id, "GUI/MouseCapturePolicy", "Disabled"]
 
+      # Set 4 cpus
+      vbox.cpus = 4
+
     #   # Enable graphics card. The default does not work
     #   vbox.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
 
@@ -113,7 +116,7 @@ Vagrant.configure("2") do |config|
     #           "--medium", "emptydrive"]
 
       # Increase memory to improve performance
-      vbox.memory = "2048"
+      vbox.memory = "4096"
 
       # Helper method for disk creation and attachment
       def create_and_attach_disk(vbox, filename, port)
@@ -177,7 +180,7 @@ Vagrant.configure("2") do |config|
     # lfcsstudent.vm.provision :shell, inline: "apt-get upgrade -y"
 
     # Add extra packages
-    lfcsstudent.vm.provision :shell, inline: "apt install sshpass bzip2 build-essential -y"
+    lfcsstudent.vm.provision :shell, inline: "apt install sshpass bzip2 build-essential virtinst libvirt-daemon-system -y"
     
     # # Add extra packages
     # ubuntu.vm.provision :shell, inline: "apt-get install -y acl tree locate gcc make perl ntpdate"
@@ -205,13 +208,21 @@ Vagrant.configure("2") do |config|
       echo "192.168.56.13 app-dev1" >> /etc/hosts
     SHELL
 
-    # Configure SSH known hosts for web-srv1
+    # Configure SSH known hosts for all servers
     lfcsstudent.vm.provision :shell, inline: <<-SHELL
       mkdir -p /home/student/.ssh
-      ssh-keyscan -H 192.168.56.10 >> /home/student/.ssh/known_hosts
+
+      cp /examiner/known_hosts /home/student/.ssh/known_hosts
+      chown student:student /home/student/.ssh/known_hosts
+      chmod 644 /home/student/.ssh/known_hosts
+
+      for ip in 192.168.56.{10..13}; do
+        ssh-keyscan -H $ip >> /home/student/.ssh/known_hosts 2>/dev/null
+      done
+      echo "StrictHostKeyChecking no" > /home/student/.ssh/config
       chown -R student:student /home/student/.ssh
       chmod 700 /home/student/.ssh
-      chmod 644 /home/student/.ssh/known_hosts
+      chmod 600 /home/student/.ssh/config
     SHELL
 
     # Add disk mounting
@@ -437,6 +448,11 @@ EOF
       systemctl start collector1.service
       systemctl start collector2.service
       systemctl start collector3.service
+    SHELL
+
+    # Set up OD/VIRT/1
+    websrv.vm.provision :shell, inline: <<-SHELL
+      curl -o /var/lib/libvirt/images/ubuntu.img https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
     SHELL
   end
 
