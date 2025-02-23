@@ -373,6 +373,13 @@ EOF
       docker run --name frontend_v1 -d -p 8080:80 --restart unless-stopped nginx
       docker run --name frontend_v2 -d -p 8081:80 -v /opt/oddock1/mnt:/things --restart unless-stopped nginx
     SHELL
+
+    # Set up OD/DOCK/2
+    lfcsstudent.vm.provision :shell, inline: <<-SHELL
+      systemctl enable docker
+      systemctl start docker
+      docker run --name nginx -d -p 8082:80 --restart unless-stopped bitnami/nginx
+    SHELL
   end
 
   config.vm.define "web-srv1" do |websrv|

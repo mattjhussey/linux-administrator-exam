@@ -432,3 +432,22 @@ if sudo docker inspect frontend_v3 --format='{{(index (index .NetworkSettings.Po
 else
     echo -e "- \033[31m✗\033[0m Docker container \"frontend_v3\" has port 1234 mapped to port 80"
 fi
+
+# Scenario OD/DOCK/2
+echo "Scenario OD/DOCK/2"
+# Verify that the docker image "bitnami/nginx" has been deleted
+if ! sudo docker images | grep -q "bitnami/nginx"; then
+    echo -e "- \033[32m✓\033[0m The docker image \"bitnami/nginx\" has been deleted"
+else
+    echo -e "- \033[31m✗\033[0m The docker image \"bitnami/nginx\" has been deleted"
+fi
+# Verify that a container with name "apache_container" based on the "httpd" image is running with port 8083 mapped to port 80 and set to restart only on failure up to 3 times
+if sudo docker ps -a | grep -q "apache_container"; then
+    if [ $(sudo docker inspect -f '{{.Config.Image}}' apache_container) == "httpd" ] && [ $(sudo docker inspect -f '{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' apache_container) == "8083" ] && [ $(sudo docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' apache_container) == "on-failure" ] && [ $(sudo docker inspect -f '{{.HostConfig.RestartPolicy.MaximumRetryCount}}' apache_container) == 3 ]; then
+        echo -e "- \033[32m✓\033[0m A container with name \"apache_container\" based on the \"httpd\" image is running with port 8083 mapped to port 80 and set to restart only on failure up to 3 times"
+    else
+        echo -e "- \033[31m✗\033[0m A container with name \"apache_container\" based on the \"httpd\" image is running with port 8083 mapped to port 80 and set to restart only on failure up to 3 times"
+    fi
+else
+    echo -e "- \033[31m✗\033[0m A container with name \"apache_container\" based on the \"httpd\" image is running with port 8083 mapped to port 80 and set to restart only on failure up to 3 times"
+fi
