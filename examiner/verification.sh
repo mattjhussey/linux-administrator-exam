@@ -508,3 +508,15 @@ if ! sshpass -p examiner ssh examiner@web-srv2 "
     echo -e "- \033[31m✗\033[0m Failed to connect to web-srv2"
 fi
 
+# Scenario OD/SEL/3
+echo "Scenario OD/SEL/3"
+# Verify that SE Boolean httpd_use_nfs is enabled on web-srv2
+if ! sshpass -p examiner ssh examiner@web-srv2 "
+    if [ \$(getsebool httpd_use_nfs | awk '{print \$3}') == \"on\" ]; then
+        echo -e \"- \033[32m✓\033[0m SE Boolean httpd_use_nfs is enabled\"
+    else
+        echo -e \"- \033[31m✗\033[0m SE Boolean httpd_use_nfs is enabled\"
+    fi
+"; then
+    echo -e "- \033[31m✗\033[0m Failed to connect to web-srv2"
+fi
